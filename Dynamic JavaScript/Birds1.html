@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+
+
+    <title>Alan Wood - Machine Learning Professional</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #3498db;
+            color: #fff;
+            text-align: center;
+            padding: 30px 0;
+        }
+
+        header h1 {
+            margin: 0;
+        }
+
+        nav {
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            margin: 0 15px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Alan Wood</h1>
+        <p>Machine Learning Professional</p>
+    </header>
+    
+    <nav>
+        <a href="#">Home</a>
+        <a href="#">About</a>
+        <a href="#">Projects</a>
+        <a href="#">Blog</a>
+        <a href="#">Contact</a>
+    </nav>
+    
+    <div class="container">
+        <section class="section">
+            <h2>About Me</h2>
+            <p>Welcome to my personal website. I'm a machine learning professional with a strong background in technical project management. I'm passionate about data analysis and data-driven decision-making.</p>
+        </section>
+        
+        <section class="section">
+            <h2>Projects</h2>
+            <p>Here are some of the machine learning projects I've worked on:</p>
+            <ul>
+                <li>Project 1: [Project Name and Description]</li>
+                <li>Project 2: [Project Name and Description]</li>
+                <li>Project 3: [Project Name and Description]</li>
+            </ul>
+        </section>
+    </div>
+<script>
+    // Define an array to hold the birds
+    let birds = [];
+    let attractPoint = null; // The point to which the birds are attracted
+
+    function setup() {
+        // Calculate the canvas size based on your desired dimensions
+        let canvasWidth = windowWidth * 0.4;  // 40% of the window width
+        let canvasHeight = windowHeight * 0.4; // 40% of the window height
+
+        // Create a canvas centered on the webpage
+        let canvasX = (windowWidth - canvasWidth) / 2;
+        let canvasY = (windowHeight - canvasHeight) / 2;
+        createCanvas(canvasWidth, canvasHeight).position(canvasX, canvasY);
+
+        // Initialize some birds
+        let numBirds = 28;
+        for (let i = 0; i < numBirds; i++) {
+            let bird = new Bird();
+            // Check for initial overlap with other birds
+            let overlapping = true;
+            while (overlapping) {
+                overlapping = false;
+                for (let otherBird of birds) {
+                    if (p5.Vector.dist(bird.pos, otherBird.pos) < 50) {
+                        overlapping = true;
+                        bird = new Bird();
+                        break;
+                    }
+                }
+            }
+            birds.push(bird);
+        }
+
+        // Add event listeners for mouse interaction
+        canvas = document.querySelector('canvas');
+        canvas.addEventListener('mousedown', handleMouseDown);
+        canvas.addEventListener('mouseup', handleMouseUp);
+        canvas.addEventListener('mousemove', handleMouseMove);
+    }
+
+    function handleMouseDown(event) {
+        // Get the mouse click position
+        let clickX = event.clientX - canvas.getBoundingClientRect().left;
+        let clickY = event.clientY - canvas.getBoundingClientRect().top;
+
+        // Set the attractPoint to the clicked position
+        attractPoint = createVector(clickX, clickY);
+    }
+
+    function handleMouseUp() {
+        // Clear the attractPoint when the mouse button is released
+        attractPoint = null;
+    }
+
+    function handleMouseMove(event) {
+        // Update the attractPoint position while the mouse is held down
+        if (attractPoint) {
+            let mouseX = event.clientX - canvas.getBoundingClientRect().left;
+            let mouseY = event.clientY - canvas.getBoundingClientRect().top;
+            attractPoint.set(mouseX, mouseY);
+        }
+    }
+
+    function draw() {
+        background(220);
+        // Loop through the birds
+        for (let bird of birds) {
+            bird.update();
+            bird.display();
+        }
+    }
+
+    class Bird {
+        constructor() {
+            // Initialize bird properties here
+            this.pos = createVector(random(width), random(height));
+            this.velocity = p5.Vector.random2D();
+        }
+
+        update() {
+            // Update bird properties here
+            this.pos.add(this.velocity);
+
+            // Wrap around to the opposite edge if the bird goes off the canvas
+            if (this.pos.x > width) {
+                this.pos.x = 0;
+            } else if (this.pos.x < 0) {
+                this.pos.x = width;
+            }
+            if (this.pos.y > height) {
+                this.pos.y = 0;
+            } else if (this.pos.y < 0) {
+                this.pos.y = height;
+            }
+
+            // Limit the maximum speed of the bird
+            let maxSpeed = 2; // Adjust the maximum speed as needed
+            this.velocity.limit(maxSpeed);
+
+            this.velocity.add(this.align()); // Call the align function
+
+            // Apply attraction to the attractPoint if it exists
+            if (attractPoint) {
+                let attraction = p5.Vector.sub(attractPoint, this.pos);
+                attraction.limit(0.2); // Adjust the attraction strength as needed
+                this.velocity.add(attraction);
+
+                // Limit the speed when attracted
+                this.velocity.limit(maxSpeed);
+            }
+        }
+
+        display() {
+            // Display the bird here
+            fill(0);
+            noStroke();
+            ellipse(this.pos.x, this.pos.y, 10, 10);
+        }
+
+        // Your align() function remains the same
+        align() {
+            // Your align code here
+            let sum = createVector(0, 0);
+            let alignRadius = 70;
+            let count = 0;
+            for (let bird of birds) {
+                if (bird !== this) {
+                    count++;
+                    if (dist(this.pos.x, this.pos.y, bird.pos.x, bird.pos.y) < alignRadius) {
+                        sum.add(bird.velocity);
+                    }
+                }
+            }
+            if (count > 0) {
+                sum.div(count);
+            }
+            return sum;
+        }
+    }
+</script>
+
+
+
+</body>
+</html>
